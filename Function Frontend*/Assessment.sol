@@ -4,17 +4,16 @@ pragma solidity ^0.8.0;
 // import "hardhat/console.sol";
 
 contract Assessment {
-    string private greeting;
-
-    constructor(string memory _greeting) {
-        greeting = _greeting;
+    uint public count = 0;
+    
+    function increaseCount() public returns(uint256){
+        count += 1;
+        return count;
     }
 
-    function greet() public view returns (string memory) {
-        return greeting;
+    function decreaseCount() public returns(uint256){
+        count -= 1;
+        return count;
     }
-
-    function setGreeting(string memory _greeting) public {
-        greeting = _greeting;
-    }
+    
 }
