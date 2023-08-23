@@ -3,33 +3,52 @@ import { ethers } from "ethers";
 // import "../App.css"
 import AssessmentABI from "../artifacts/contracts/Assessment.sol/Assessment.json";
 
-const greeterAddress = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
+const counterAddress = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
 
 export default function HomePage() {
   // Property Variables
 
-  const [message, setMessage] = useState("");
-  const [currentGreeting, setCurrentGreeting] = useState("");
+  const [currentCounter, setCurrentCounter] = useState(0);
 
-  // Requests access to the user's Meta Mask Account
   async function requestAccount() {
     await window.ethereum.request({ method: "eth_requestAccounts" });
   }
 
-  // Fetches the current value store in greeting
-  async function fetchGreeting() {
-    // If MetaMask exists
+  async function fetchCount(){
     if (typeof window.ethereum !== "undefined") {
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const contract = new ethers.Contract(
-        greeterAddress,
+        counterAddress,
         AssessmentABI.abi,
         provider
       );
       try {
-        const data = await contract.greet();
-        console.log("data: ", data);
-        setCurrentGreeting(data);
+        const tx = await contract.count();
+        const updatedCount = await tx.count();
+        setCurrentCounter(updatedCount);
+      } catch (error) {
+        console.log("Error: ", error);
+      }
+    }
+  }
+
+  // Fetches the current value store in greeting
+  async function increaseCounter() {
+    // If MetaMask exists
+    if (typeof window.ethereum !== "undefined") {
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const signer = provider.getSigner();
+      const contract = new ethers.Contract(
+        counterAddress,
+        AssessmentABI.abi,
+        signer
+      );
+      try {
+        const tx = await contract.increaseCount();
+        await tx.wait();
+        const updatedCount = await contract.count();
+        setCurrentCounter(updatedCount);
+        fetchCount();
       } catch (error) {
         console.log("Error: ", error);
       }
@@ -37,25 +56,22 @@ export default function HomePage() {
   }
 
   // Sets the greeting from input text box
-  async function setGreeting() {
-    if (!message) return;
-  
+  async function decreaseCounter() {  
     // If MetaMask exists
     if (typeof window.ethereum !== "undefined") {
-      await requestAccount();
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
       const contract = new ethers.Contract(
-        greeterAddress,
+        counterAddress,
         AssessmentABI.abi,
         signer
       );
   
       try {
-        const transaction = await contract.setGreeting(message);
-        setMessage("");
-        await transaction.wait();
-        fetchGreeting();
+        const tx = await contract.decreaseCount();
+        await tx.wait();
+        const updatedCount = await contract.count();
+        setCurrentCounter(updatedCount);
       } catch (error) {
         console.log(error.message);
       }
@@ -67,63 +83,46 @@ export default function HomePage() {
 
   return (
     <div className="App" style={{
-      backgroundColor:"pink",
-      borderRadius:"20px",
+      backgroundColor:"green",
       display:"flex",
       alignItems:"center",
       justifyContent: "center",
       height:"100vh",
       maxHeight: "100vh",
-      padding: "10px"
     }}>
       <div className="App-header">
         {/* DESCRIPTION  */}
         <div className="description">
-          <h1>Assessment</h1>
-          <h3>Smart Contract Management-ETH-AVX Project</h3>
+          <h1>Metacrafter</h1>
+          <h3>Project-2</h3>
+          <h3>Smart Contract Management-ETH-AVX</h3>
         </div>
         {/* BUTTONS - Fetch and Set */}
         <div className="custom-buttons">
-          <button onClick={fetchGreeting} style={{ 
+          <button onClick={increaseCounter} style={{ 
             padding:"10px",
-            border:"2px black solid",
-            borderRadius:"999px",
-            marginBottom:"30px",
-            marginRight:"10px",
+            marginBottom:"5px",
+            marginRight:"5px",
             color:"black"
             }}>
-            Fetch Greeting
+            Increase Counter
           </button>
-          <button onClick={setGreeting} style={{ 
+          <button onClick={decreaseCounter} style={{ 
             backgroundColor: "black",
             padding:"10px",
-            borderRadius:"999px",
-            marginBottom:"30px",
-            marginRight:"10px" ,
+            marginBottom:"5px",
+            marginRight:"5px" ,
             color:"white"
             }}>
-            Set Greeting
+            Decrease Counter
           </button>
         </div>
-        {/* INPUT TEXT - String  */}
-        <input
-          onChange={(e) => setMessage(e.target.value)}
-          value={message}
-          placeholder="Set Greeting Message"
-          style={{
-            padding:"10px",
-            borderRadius:"20px",
-            width:"320px"
-          }}
-        />
-
         {/* Current Value stored on Blockchain */}
         <h2 className="greeting" style={{
           padding:"20px",
-          backgroundColor: "yellow",
+          backgroundColor: "pink",
           border: "2px solid gray",
-          borderRadius:"9999px"
-        }}>Greeting: {currentGreeting}</h2>
+        }}>Coun: {currentCounter}</h2>
       </div>
     </div>
   );
